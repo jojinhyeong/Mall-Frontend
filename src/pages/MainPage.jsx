@@ -1,7 +1,7 @@
 import React from 'react';
 import BasicLayout from '../layout/BasicLayout';
 
-function MainPage(props) {
+const MainPage = () => {
     return (
         <BasicLayout>
             <div className='{text-3xl}'>Main Page</div>
