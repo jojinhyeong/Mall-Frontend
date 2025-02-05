@@ -1,5 +1,8 @@
 import React, { useRef, useState } from 'react';
-import { postAdd } from '../../api/products';
+import { postAdd } from '../../api/productsApi';
+import FetchingModal from '../common/FetchingModal';
+import ResultModal from '../common/ResultModal';
+import useCustomMove from '../../hooks/useCustomMove';
 
 const initState = {
     pname: '',
@@ -14,6 +17,12 @@ const AddComponent = () => {
 
     const uploadRef = useRef()
 
+    const [fetching, setFetching] = useState(false)
+
+    const [result, setResult] = useState(false)
+
+    const {moveToList} = useCustomMove() //이동을 위한 함수
+
     const handleChangeProduct = (e) => {
         product[e.target.name] = e.target.value
 
@@ -21,19 +30,30 @@ const AddComponent = () => {
     }
 
     const handleClickAdd = (e) => {
-        const files = uploadRef.current.files 
-        const formData = new FormData() 
+        const files = uploadRef.current.files
+        const formData = new FormData()
 
         for (let i = 0; i < files.length; i++) {
             formData.append("files", files[i]);
         }
         //other data
-        formData.append("pname", product.pname) 
-        formData.append("pdesc", product.pdesc) 
+        formData.append("pname", product.pname)
+        formData.append("pdesc", product.pdesc)
         formData.append("price", product.price)
         //console.log(formData) 
 
-        postAdd(formData)
+        setFetching(true)
+
+        postAdd(formData).then(data => {
+            setFetching(false)
+            setResult(data.RESULT)
+        })
+    }
+
+    const closeModal = () => { 
+        //ResultModal 종료
+         setResult(null)
+         moveToList({page:1})
     }
 
 
@@ -77,8 +97,17 @@ const AddComponent = () => {
                     <button type="button"
                         className="rounded p-4 w-36 bg-blue-500 text-xl  text-white " onClick={handleClickAdd} >
                         ADD
-                    </button> </div>
+                    </button>
+                </div>
             </div>
+
+            {fetching ? <FetchingModal /> : <></>}
+            {result ?
+                <ResultModal
+                    title={'Product Add Result'} content={`${result}번 등록 완료`} callbackFn={closeModal}
+                />
+                : <></>}
+
         </div>
 
     );
