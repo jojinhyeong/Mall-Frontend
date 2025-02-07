@@ -1,4 +1,3 @@
-import { useSearchParams } from "react-router-dom";
 import ListComponent from "../../components/todo/ListComponent";
 
 const ListPage = () => {
