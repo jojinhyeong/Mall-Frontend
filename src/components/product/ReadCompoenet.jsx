@@ -3,6 +3,8 @@ import { API_SERVER_HOST } from '../../api/todoApi';
 import useCustomMove from '../../hooks/useCustomMove';
 import FetchingModal from '../common/FetchingModal';
 import { getOne } from '../../api/productsApi';
+import useCustomCart from '../../hooks/useCustomCart';
+import useCustomLogin from '../../hooks/useCustomLogin';
 
 
 const initState = {
@@ -16,21 +18,42 @@ const initState = {
 const host = API_SERVER_HOST
 
 const ReadCompoenet = ({ pno }) => {
+    const [product, setProduct] = useState(initState)
 
-    const [product, setProduct] = useState(initState) //화면 이동용 함수
-    
-    const { moveToList, moveToModify , page, size, refresh} = useCustomMove() //fetching
+    //화면 이동용 함수
+    const { moveToList, moveToModify, page, size, refresh } = useCustomMove()
 
-    const [fetching, setFetching] = useState(false) 
+    //fetching
+    const [fetching, setFetching] = useState(false)
+
+    //장바구니 기능
+    const { changeCart, cartItems } = useCustomCart()
+
+    //로그인 정보
+    const { loginState } = useCustomLogin()
 
     useEffect(() => {
         setFetching(true)
         getOne(pno).then(data => {
             console.log(data);
-            setProduct(data) 
+            setProduct(data)
             setFetching(false)
         })
     }, [pno])
+
+    const handleClickAddCart = () => {
+        let qty = 1
+        const addedItem = cartItems.filter(item => item.pno === parseInt(pno))[0]
+
+        if (addedItem) {
+            if (window.confirm("이미 추가된 상품입니다. 추가하시겠습니까?") === false) {
+                return
+            }
+            qty = addedItem.qty + 1
+        }
+
+        changeCart({ email: loginState.email, pno: pno, qty: qty })
+    }
 
     return (
         <div className="border-2 border-sky-200 mt-10 m-2 p-4">
@@ -87,12 +110,18 @@ const ReadCompoenet = ({ pno }) => {
 
             <div className="flex justify-end p-4">
                 <button type="button"
+                    className="inline-block rounded p-4 m-2 text-xl w-32 text-white bg-green-500"
+                    onClick={handleClickAddCart} >
+                    Add Cart
+                </button>
+
+                <button type="button"
                     className="inline-block rounded p-4 m-2 text-xl w-32 text-white bg-red-500"
-                    onClick={() => moveToModify(pno)}
-                >
+                    onClick={() => moveToModify(pno)}>
                     Modify
                 </button>
-                <button type="button" className="rounded p-4 m-2 text-xl w-32 text-white bg-blue-500" onClick={()=>moveToList({page,size})}>
+
+                <button type="button" className="rounded p-4 m-2 text-xl w-32 text-white bg-blue-500" onClick={() => moveToList({ page, size })}>
                     List
                 </button>
             </div>
